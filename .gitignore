@@ -1,0 +1,8 @@
+/.idea
+/build
+
+.DS_Store
+/jobqueuebeat
+/jobqueuebeat.test
+*.pyc
+*.swp
