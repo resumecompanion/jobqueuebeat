@@ -1,8 +1,8 @@
 package beater
 
 import (
-	"fmt"
-	"time"
+  "fmt"
+  "time"
 
   "github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
@@ -40,8 +40,8 @@ func (bt *Jobqueuebeat) Run(b *beat.Beat) error {
 		return err
 	}
 
-	ticker := time.NewTicker(bt.config.Period)
-	counter := 1
+  ticker := time.NewTicker(bt.config.Period)
+  counter := 1
 
   queue := queues.DelayedJob{&bt.config, nil}
   queue.Connect()

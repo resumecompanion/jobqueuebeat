@@ -3,8 +3,8 @@ package queues
 import (
   "database/sql"
   _ "github.com/go-sql-driver/mysql"
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/common"
+  "github.com/elastic/beats/libbeat/logp"
+  "github.com/elastic/beats/libbeat/common"
   "fmt"
   "strings"
   "time"
