@@ -14,6 +14,10 @@ type Config struct {
       Password string `config:"password"`
       Host string `config:"host"`
       Database string `config:"database"`
+      Ssl bool `config:"ssl"`
+      SslCa string `config:"sslca"`
+      SslKey string `config:"sslkey"`
+      SslCert string `config:"sslcert"`
     } `config:"mysql"`
   } `config:"connection"`
 }

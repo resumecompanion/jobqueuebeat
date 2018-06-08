@@ -2,13 +2,14 @@ package queues
 
 import (
   "database/sql"
-  _ "github.com/go-sql-driver/mysql"
+  "github.com/go-sql-driver/mysql"
   "github.com/elastic/beats/libbeat/logp"
   "github.com/elastic/beats/libbeat/common"
   "fmt"
   "strings"
   "time"
-	"github.com/resumecompanion/jobqueuebeat/config"
+  "github.com/resumecompanion/jobqueuebeat/config"
+  "strconv"
 )
 
 type DelayedJob struct {
@@ -19,7 +20,18 @@ type DelayedJob struct {
 
 
 func (dj *DelayedJob) Connect() {
-  connString := fmt.Sprintf("%s:%s@%s/%s", dj.Cfg.Connection.Mysql.Username, dj.Cfg.Connection.Mysql.Password, dj.Cfg.Connection.Mysql.Host, dj.Cfg.Connection.Mysql.Database )
+  var connString string
+
+  if dj.Cfg.Connection.Mysql.Ssl {
+    logp.Warn("setting SSL")
+    tls := SetupTLSConfig(dj.Cfg.Connection.Mysql.SslCa, dj.Cfg.Connection.Mysql.SslCert, dj.Cfg.Connection.Mysql.SslKey)
+    mysql.RegisterTLSConfig("custom", &tls)
+
+    connString = fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?tls=custom", dj.Cfg.Connection.Mysql.Username, dj.Cfg.Connection.Mysql.Password, dj.Cfg.Connection.Mysql.Host, dj.Cfg.Connection.Mysql.Database )
+  } else {
+    connString = fmt.Sprintf("%s:%s@tcp(%s:3306)/%s", dj.Cfg.Connection.Mysql.Username, dj.Cfg.Connection.Mysql.Password, dj.Cfg.Connection.Mysql.Host, dj.Cfg.Connection.Mysql.Database )
+  }
+
   dj.DbConnection, _ = sql.Open("mysql", connString)
 
   err := dj.DbConnection.Ping()
@@ -27,6 +39,7 @@ func (dj *DelayedJob) Connect() {
 
   if err != nil {
     logp.Warn("could not connect to DB")
+    logp.Warn(err.Error())
     return 
   }
 }
@@ -49,6 +62,7 @@ func (dj DelayedJob) MetricForQuery(query string) int {
 
   if rowErr != nil {
     fmt.Println("Row Error")
+    logp.Warn(rowErr.Error())
     return 0
   }
 
@@ -58,6 +72,7 @@ func (dj DelayedJob) MetricForQuery(query string) int {
   for rows.Next() {
     rows.Scan(&count)
   }
+  logp.Warn(strconv.Itoa(count))
 
   return count
 }
