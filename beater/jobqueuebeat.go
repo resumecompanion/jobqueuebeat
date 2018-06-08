@@ -58,6 +58,7 @@ func (bt *Jobqueuebeat) Run(b *beat.Beat) error {
     fields := queue.CollectMetrics()
     fields["type"] = b.Info.Name
     fields["counter"] = counter
+    fields["background_runner"] = "delayed_job"
     event := beat.Event{
       Timestamp: time.Now(),
       Fields: fields,

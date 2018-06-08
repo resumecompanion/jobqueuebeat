@@ -49,7 +49,6 @@ func (dj DelayedJob) CollectMetrics() common.MapStr {
   failedQuery.WriteString("select count(id) from delayed_jobs where run_at <= '")
   failedQuery.WriteString(time.Now().Format("2006-01-02 15:04:05"))
   failedQuery.WriteString("' AND locked_at IS NULL AND attempts = 0")
-  fmt.Println(failedQuery.String())
   return common.MapStr {
     "running_jobs": dj.MetricForQuery("select count(id) from delayed_jobs where locked_at IS NOT NULL AND failed_at IS NULL"),
     "failed_jobs": dj.MetricForQuery("select count(id) from delayed_jobs where attempts > 0 AND failed_at IS NULL AND locked_at IS NULL"),
