@@ -4,4 +4,25 @@
 
 jobqueuebeat:
   # Defines how often an event is sent to the output
-  period: 1s
+  period: 1m
+  connection:
+    mysql:
+      username:
+      host:
+      database:
+      password:
+      ssl:
+      sslca:
+      sslkey:
+      sslcert:
+      type: delayedJob
+    sidekiq:
+      host:
+      port: 6379
+      password:
+      type: sidekiq
+    resque:
+      host: localhost
+      port: 6379
+      password:
+      type: resque

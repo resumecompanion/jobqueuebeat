@@ -1,10 +1,10 @@
 package beater
 
 import (
-  "fmt"
-  "time"
+	"fmt"
+	"time"
 
-  "github.com/elastic/beats/libbeat/beat"
+	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 
@@ -40,12 +40,27 @@ func (bt *Jobqueuebeat) Run(b *beat.Beat) error {
 		return err
 	}
 
-  ticker := time.NewTicker(bt.config.Period)
-  counter := 1
+	ticker := time.NewTicker(bt.config.Period)
+	counter := 1
 
-  queue := queues.DelayedJob{&bt.config, nil}
-  queue.Connect()
+	var t interface{}
 
+	if bt.config.Connection.Mysql.Username != "" {
+		t = queues.DelayedJob{
+			Cfg: &bt.config,
+		}
+	} else if bt.config.Connection.Sidekiq.Host != "" {
+		t = queues.Sidekiq{
+			Cfg: &bt.config,
+		}
+	} else {
+		t = queues.Resque{
+			Cfg: &bt.config,
+		}
+	}
+	djb, dok := t.(queues.DelayedJob)
+	skb, sok := t.(queues.Sidekiq)
+	rsb, rok := t.(queues.Resque)
 	for {
 		select {
 		case <-bt.done:
@@ -53,16 +68,29 @@ func (bt *Jobqueuebeat) Run(b *beat.Beat) error {
 		case <-ticker.C:
 		}
 
-      
+		var fields common.MapStr
+		if dok {
+			djb.Connect()
+			fields = djb.CollectMetrics()
+			fields["background_runner"] = djb.Cfg.Connection.Mysql.Type
+		} else if sok {
+			skb.Connect()
+			fields = skb.CollectMetrics()
+			fields["background_runner"] = skb.Cfg.Connection.Sidekiq.Type
+		} else if rok {
+			rsb.Connect()
+			fields = rsb.CollectMetrics()
+			fields["background_runner"] = rsb.Cfg.Connection.Resque.Type
+		}
+		fields["type"] = b.Info.Name
+		fields["counter"] = counter
 
-    fields := queue.CollectMetrics()
-    fields["type"] = b.Info.Name
-    fields["counter"] = counter
-    event := beat.Event{
-      Timestamp: time.Now(),
-      Fields: fields,
-    }
-    bt.client.Publish(event)
+		event := beat.Event{
+			Timestamp: time.Now(),
+			Fields:    fields,
+		}
+
+		bt.client.Publish(event)
 		logp.Info("Event sent")
 		counter++
 	}
