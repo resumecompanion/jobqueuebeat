@@ -13,6 +13,9 @@ type Config struct {
 			Host     string `config:"host"`
 			Database string `config:"database"`
 			Type     string `config:"type"`
+			SslCa    string `config:"sslca"`
+			SslKey   string `config:"sslkey"`
+			SslCert  string `config:"sslcert"`
 		} `config:"mysql"`
 		Sidekiq struct {
 			Password string `config:"password"`
