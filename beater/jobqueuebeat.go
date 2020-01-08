@@ -73,6 +73,7 @@ func (bt *Jobqueuebeat) Run(b *beat.Beat) error {
 			djb.Connect()
 			fields = djb.CollectMetrics()
 			fields["background_runner"] = djb.Cfg.Connection.Mysql.Type
+			djb.DbConnection.Close()
 		} else if sok {
 			skb.Connect()
 			fields = skb.CollectMetrics()
